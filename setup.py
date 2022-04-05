@@ -40,13 +40,6 @@ if sys.version_info < (3, 7, 0):
 
 import setuptools
 
-
-def parse_requirements(path: str) -> list[str]:
-    with open(path) as f:
-        deps = (d.strip() for d in f.readlines())
-        return [d for d in deps if not d.startswith(("#", "-e", "-r"))]
-
-
 with open("./xsync/__init__.py") as f:
     attrs = defaultdict(str)
 
@@ -109,6 +102,5 @@ setuptools.setup(
     },
     python_requires=">=3.7.0,<3.12",
     packages=setuptools.find_packages(),
-    package_data={"xsync": ["py.typed"]},
     include_package_data=True,
 )
