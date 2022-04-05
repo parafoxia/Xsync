@@ -51,12 +51,19 @@ def maybe_async() -> DecoratorT:
                 log.info(f"Selected {func.__qualname__} to run (sync)")
                 return func(*args, **kwargs)
 
-            if args and func.__qualname__.split(".")[0] == args[0].__class__.__name__:
-                log.info(f"Selected {func.__qualname__} to run (async meth)")
-                return getattr(args[0], f"_async_{func.__name__}")(*args[1:], **kwargs)
+            if args:
+                # Account for classmethods.
+                n = args[0].__class__.__name__
+                clsname = n if n != "type" else args[0].__name__
 
-            log.info(f"Selected {func.__qualname__} to run (async func)")
-            return func.__globals__[f"_async_{func.__name__}"](*args, **kwargs)
+                if func.__qualname__.split(".")[0] == clsname:
+                    meth = getattr(args[0], f"_async_{func.__name__}")
+                    log.info(f"Selected {meth.__qualname__} to run (async meth)")
+                    return meth(*args[1:], **kwargs)
+
+            meth = func.__globals__[f"_async_{func.__name__}"]
+            log.info(f"Selected {meth.__qualname__} to run (async func)")
+            return meth(*args, **kwargs)
 
         return wrapper
 

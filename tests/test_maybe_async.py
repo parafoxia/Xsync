@@ -30,23 +30,7 @@
 import xsync
 
 
-class Test:
-    @xsync.maybe_async()
-    def method(self):
-        return "sync"
-
-    async def _async_method(self):
-        return "async"
-
-
-def test_sync_method():
-    t = Test()
-    assert t.method() == "sync"
-
-
-async def test_async_method():
-    t = Test()
-    assert await t.method() == "async"
+# Functions
 
 
 @xsync.maybe_async()
@@ -64,3 +48,49 @@ def test_sync_function():
 
 async def test_async_function():
     assert await function() == "async"
+
+
+# Classmethods
+
+
+class MockObject:
+    def __init__(self, sync=None):
+        self.sync = sync
+
+    @xsync.maybe_async()
+    def method(self):
+        return "sync"
+
+    async def _async_method(self):
+        return "async"
+
+    @classmethod
+    @xsync.maybe_async()
+    def from_whatever(cls):
+        print("sync clsmth")
+        return MockObject(sync=True)
+
+    @classmethod
+    async def _async_from_whatever(cls):
+        print("async clsmth")
+        return MockObject(sync=False)
+
+
+def test_sync_method():
+    t = MockObject()
+    assert t.method() == "sync"
+
+
+async def test_async_method():
+    t = MockObject()
+    assert await t.method() == "async"
+
+
+def test_sync_classmethod():
+    t = MockObject.from_whatever()
+    assert t.sync
+
+
+async def test_async_classmethod():
+    t = await MockObject.from_whatever()
+    assert not t.sync
