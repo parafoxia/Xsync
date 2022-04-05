@@ -26,17 +26,32 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-__all__ = ("maybe_async",)
+from __future__ import annotations
 
-__productname__ = "xsync"
-__version__ = "0.1.0"
-__description__ = "A set of tools to create hybrid sync/async interfaces."
-__url__ = "https://github.com/parafoxia/Xsync"
-__author__ = "Ethan Henderson"
-__author_email__ = "ethan.henderson.1998@gmail.com"
-__license__ = "BSD 3-Clause 'New' or 'Revised' License"
-__bugtracker__ = "https://github.com/parafoxia/Xsync/issues"
-__ci__ = "https://github.com/parafoxia/Xsync/actions"
-__changelog__ = "https://github.com/parafoxia/Xsync/releases"
+import inspect
+import typing as t
+from functools import wraps
 
-from .deco import maybe_async
+if t.TYPE_CHECKING:
+    FuncT = t.Callable[..., t.Any]
+    WrapperT = FuncT
+    DecoratorT = t.Callable[[FuncT], WrapperT]
+
+
+def maybe_async() -> DecoratorT:
+    def decorator(func: FuncT) -> WrapperT:
+        @wraps(func)
+        def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
+            ctx = inspect.stack()[1].code_context
+
+            if not ctx or "await" not in ctx[0]:
+                return func(*args, **kwargs)
+
+            if args and func.__qualname__.split(".")[0] == args[0].__class__.__name__:
+                return getattr(args[0], f"_async_{func.__name__}")(*args[1:], **kwargs)
+
+            return func.__globals__[f"_async_{func.__name__}"](*args, **kwargs)
+
+        return wrapper
+
+    return decorator
