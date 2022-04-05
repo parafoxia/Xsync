@@ -52,7 +52,7 @@ DEP_PATTERN = re.compile("([a-zA-Z0-9-_]*)[=~<>,.0-9ab]*")
 def fetch_installs(*categories: str) -> list[str]:
     installs = []
 
-    with open(PROJECT_DIR / "requirements/dev.txt") as f:
+    with open(PROJECT_DIR / "requirements-dev.txt") as f:
         in_cat = None
 
         for line in f:
@@ -110,11 +110,7 @@ def imports(session: nox.Session) -> None:
 
 @nox.session(reuse_venv=True)
 def typing(session: nox.Session) -> None:
-    session.install(
-        *fetch_installs("Typing"),
-        "-r",
-        "requirements/types.txt",
-    )
+    session.install(*fetch_installs("Typing"))
     session.run("mypy", CHECK_PATHS[0], CHECK_PATHS[3])
 
 
@@ -149,7 +145,7 @@ def licensing(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def spelling(session: nox.Session) -> None:
     session.install(*fetch_installs("Spelling"))
-    session.run("codespell", *CHECK_PATHS, "-S", "**/analytix/data.py")
+    session.run("codespell", *CHECK_PATHS)
 
 
 @nox.session(reuse_venv=True)
@@ -157,16 +153,10 @@ def safety(session: nox.Session) -> None:
     if sys.version_info >= (3, 11):
         session.skip("Safety does not support Python 3.11")
 
-    installs = []
-
-    for p in list(PROJECT_DIR.glob("requirements/*.txt")):
-        installs.extend(["-r", f"{p}"])
-
     # Needed due to https://github.com/pypa/pip/pull/9827.
     session.install("-U", "pip")
-    session.install(*installs)
-    # Issue 44715 has been fixed, so can ignore.
-    session.run("safety", "check", "--full-report", "-i", "44715")
+    session.install("-r", "requirements-dev.txt")
+    session.run("safety", "check", "--full-report")
 
 
 @nox.session(reuse_venv=True)
@@ -180,4 +170,4 @@ def security(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def dependencies(session: nox.Session) -> None:
     session.install(*fetch_installs("Dependencies"))
-    session.run("deputil", "update", "requirements")
+    session.run("deputil", "update", "requirements-dev.txt")
