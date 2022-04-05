@@ -59,7 +59,9 @@ read_file("path/to/file")
 await read_file("path/to/file")
 ```
 
-This also works with methods within classes:
+The `_async_` prefix is important, as this is what *Xsync* uses to find async implementations.
+
+This also works with methods within classes (as well as classmethods, provided the `classmethod` decorator is above the `maybe_async` one):
 
 ```py
 import xsync
