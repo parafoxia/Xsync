@@ -29,6 +29,7 @@
 from __future__ import annotations
 
 import inspect
+import logging
 import typing as t
 from functools import wraps
 
@@ -36,6 +37,8 @@ if t.TYPE_CHECKING:
     FuncT = t.Callable[..., t.Any]
     WrapperT = FuncT
     DecoratorT = t.Callable[[FuncT], WrapperT]
+
+log = logging.getLogger(__name__)
 
 
 def maybe_async() -> DecoratorT:
@@ -45,11 +48,14 @@ def maybe_async() -> DecoratorT:
             ctx = inspect.stack()[1].code_context
 
             if not ctx or "await" not in ctx[0]:
+                log.info(f"Selected {func.__qualname__} to run (sync)")
                 return func(*args, **kwargs)
 
             if args and func.__qualname__.split(".")[0] == args[0].__class__.__name__:
+                log.info(f"Selected {func.__qualname__} to run (async meth)")
                 return getattr(args[0], f"_async_{func.__name__}")(*args[1:], **kwargs)
 
+            log.info(f"Selected {func.__qualname__} to run (async func)")
             return func.__globals__[f"_async_{func.__name__}"](*args, **kwargs)
 
         return wrapper
