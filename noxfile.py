@@ -37,7 +37,7 @@ import nox
 PROJECT_DIR = Path(__file__).parent
 TEST_DIR = PROJECT_DIR / "tests"
 
-PROJECT_NAME = Path(__file__).parent.stem
+PROJECT_NAME = Path(__file__).parent.stem.lower()
 
 CHECK_PATHS = (
     str(PROJECT_DIR / PROJECT_NAME),
