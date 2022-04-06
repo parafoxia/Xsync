@@ -26,6 +26,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import sys
+
+import mock
 import pytest
 
 import xsync
@@ -159,3 +162,22 @@ def test_async_impl_of_non_hybrid():
         str(exc.value)
         == f"'test_async_impl_of_non_hybrid.<locals>.normal_func' has not been registered as a hybrid callable"
     )
+
+
+def test_no_qualname():
+    with mock.patch.object(sys, "version_info") as mock_sys:
+        def __ge__(self, other):
+            return False
+
+        mock_sys.__ge__ = __ge__
+
+        class MockObject:
+            @classmethod
+            @xsync.as_hybrid()
+            def from_love(cls):
+                return cls()
+
+            @classmethod
+            @xsync.set_async_impl(from_love)
+            def async_from_love(cls):
+                return cls()

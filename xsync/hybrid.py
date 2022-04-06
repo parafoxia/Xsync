@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import sys
 import typing as t
 from functools import wraps
 
@@ -44,9 +45,19 @@ log = logging.getLogger(__name__)
 mapping: MappingT = {}
 
 
+def _get_fname(func: FuncT) -> str:
+    if sys.version_info >= (3, 10):
+        return func.__qualname__
+
+    # Class methods and static methods did not have a __qualname__ attr
+    # before Python 3.10.
+    return getattr(func, "__qualname__", func.__name__)
+
+
 def as_hybrid() -> DecoT:
     def decorator(func: FuncT) -> FuncT:
-        mapping[func.__qualname__] = None
+        fname = _get_fname(func)
+        mapping[fname] = None
 
         @wraps(func)
         def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
@@ -55,7 +66,7 @@ def as_hybrid() -> DecoT:
             if not ctx or "await" not in ctx[0]:
                 return func(*args, **kwargs)
 
-            coro = mapping[func.__qualname__]
+            coro = mapping[fname]
             if not coro:
                 raise errors.NoAsyncImplementation(func)
             return coro(*args, **kwargs)
@@ -67,10 +78,12 @@ def as_hybrid() -> DecoT:
 
 def set_async_impl(func: FuncT) -> DecoT:
     def decorator(coro: FuncT) -> FuncT:
-        if func.__qualname__ not in mapping:
+        fname = _get_fname(func)
+
+        if fname not in mapping:
             raise errors.NotHybridCallable(func)
 
-        mapping[func.__qualname__] = coro
+        mapping[fname] = coro
 
         @wraps(coro)
         def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
