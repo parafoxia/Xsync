@@ -10,70 +10,131 @@ Windows, MacOS, and Linux are all supported.
 
 *Xsync* allows developers to create dynamic interfaces which can be run in sync or async contexts.
 
-We'll use reading a text file as an example. Normally, users would have to use different function/method names depending on whether it was sync or async:
+In simple terms, it makes this possible:
 
 ```py
-read_file("How are you?")
-await read_file_async("How are you?")
+result = my_function()
+result = await my_function()
 ```
 
-However, with *Xsync*, users don't have to worry about that:
-
-```py
-read_file("I'm great thanks!")
-await read_file("I'm great thanks!")
-```
-
-This provides a slick and dynamic interface which is oftentimes far more intuitive.
+How neat is that?!
 
 ## Usage
 
-Hybrid interfaces can be created with the help of *Xsync*'s `maybe_async` decorator:
+The above behaviour can be achieved with the `as_hybrid` decorator:
 
 ```py
-import aiofiles
-import xsync
+@xsync.as_hybrid()
+def my_function():
+    ...
+```
 
+This sets `my_function` up as a "hybrid callable", which is capable of being run both synchronously and asynchronously.
+However, we also need to set an async implementation for `my_function` for it to work.
+We can do this using the `set_async_impl` decorator:
+
+```py
+@xsync.set_async_impl(my_function)
+async def my_async_function():
+    ...
+```
+
+Doing this tells *Xsync* to run this function instead of `my_function` when awaiting:
+
+```py
+my_function()        # runs as normal
+await my_function()  # calls `my_async_function` instead
+```
+
+Don't worry, `my_async_function` can still be run directly, as you'd expect.
+
+It also works on methods, class methods, and static methods:
+
+```py
+class MyClass:
+    @xsync.as_hybrid()
+    def my_method(self):
+        ...
+
+    @xsync.set_async_impl(my_method)
+    async def my_async_method(self):
+        ...
+
+    @classmethod
+    @xsync.as_hybrid()
+    def my_class_method(cls):
+        ...
+
+    @classmethod
+    @xsync.set_async_impl(my_class_method)
+    async def my_async_class_method(cls):
+        ...
+
+    @staticmethod
+    @xsync.as_hybrid()
+    def my_static_method(cls):
+        ...
+
+    @staticmethod
+    @xsync.set_async_impl(my_static_method)
+    async def my_async_static_method(cls):
+        ...
+```
+
+***
+
+The above is the newer (and better) of two available implementations.
+
+<details>
+<summary>View the old implementation</summary>
+
+The above behaviour can be achieved with the `maybe_async` decorator:
+
+```py
 @xsync.maybe_async()
-def read_file(path: str) -> str:
-    with open(path) as f:
-        return f.read()
-
-async def _async_read_file(path: str) -> str:
-    async with aiofiles.open(path) as f:
-        return await f.read()
+def my_function():
+    ...
 ```
 
-Here, `read_file` and `_async_read_file` are sync and async implementations of the same action.
-The `maybe_async` decorator would determine which of the two to run at runtime, based on whether the code is running in an async context.
-
-So `read_file` would be executed when doing the following...
+This sets `my_function` up as a "hybrid callable", which is capable of being run both synchronously and asynchronously.
+However, we also need to set an async implementation for `my_function` for it to work.
+We can do this by creating another function of the same name, but with an `_async_` prefix:
 
 ```py
-read_file("path/to/file")
+async def _async_my_function():
+    ...
 ```
 
-...but `_async_read_file` would be executed when doing the following instead:
+*Xsync* searches for a function with the name of the original function prefixed by `_async_` at runtime, and runs this instead when awaiting:
 
 ```py
-await read_file("path/to/file")
+my_function()        # runs as normal
+await my_function()  # calls `_async_my_function` instead
 ```
 
-The `_async_` prefix is important, as this is what *Xsync* uses to find async implementations.
-
-This also works with methods within classes (as well as classmethods, provided the `classmethod` decorator is above the `maybe_async` one):
+It also works on methods and class methods:
 
 ```py
-import xsync
-
-class Reader:
+class MyClass:
     @xsync.maybe_async()
-    def read_file(self, path: str) -> str:
+    def my_method(self):
         ...
 
-    async def _async_read_file(self, path: str) -> str:
+    async def _async_my_method(self):
+        ...
+
+    @classmethod
+    @xsync.maybe_async()
+    def my_class_method(cls):
+        ...
+
+    @classmethod
+    async def _async_my_class_method(cls):
         ...
 ```
+
+**This implementation does not work with static methods.**
+</details>
 
 ## Contributing
 
