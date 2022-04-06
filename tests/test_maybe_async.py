@@ -33,7 +33,7 @@ import xsync
 
 @xsync.maybe_async()
 def func(text):
-    return text[::-1]
+    return text
 
 
 async def _async_func(text):
@@ -46,7 +46,7 @@ class MockObject:
 
     @xsync.maybe_async()
     def meth(self, text):
-        return text[::-1]
+        return text
 
     async def _async_meth(self, text):
         return text[::-1]
@@ -60,9 +60,18 @@ class MockObject:
     async def _async_from_love(cls):
         return MockObject(sync=False)
 
+    @staticmethod
+    @xsync.maybe_async()
+    def static_meth(text):
+        return text
+
+    @staticmethod
+    async def _async_static_meth(text):
+        return text[::-1]
+
 
 def test_sync_function():
-    assert func("xsync") == "cnysx"
+    assert func("xsync") == "xsync"
 
 
 async def test_async_function():
@@ -72,7 +81,7 @@ async def test_async_function():
 
 def test_sync_method():
     t = MockObject()
-    assert t.meth("xsync") == "cnysx"
+    assert t.meth("xsync") == "xsync"
 
 
 async def test_async_method():

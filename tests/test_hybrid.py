@@ -34,7 +34,7 @@ from xsync import errors
 
 @xsync.as_hybrid()
 def func(text):
-    return text[::-1]
+    return text
 
 
 @xsync.set_async_impl(func)
@@ -48,7 +48,7 @@ class MockObject:
 
     @xsync.as_hybrid()
     def meth(self, text):
-        return text[::-1]
+        return text
 
     @xsync.set_async_impl(meth)
     async def async_meth(self, text):
@@ -64,33 +64,46 @@ class MockObject:
     async def async_from_love(cls):
         return MockObject(sync=False)
 
+    @staticmethod
+    @xsync.as_hybrid()
+    def static_meth(text):
+        return text
+
+    @staticmethod
+    @xsync.set_async_impl(static_meth)
+    async def async_static_meth(text):
+        return text[::-1]
+
 
 @xsync.as_hybrid()
 def no_async_func(text):
-    return text[::-1]
+    return text
 
 
 # ---
 
 
 def test_sync_function():
-    assert func("sync") == "cnys"
+    assert func("sync") == "sync"
 
 
 async def test_async_function():
-    assert await func("async") == "cnysa"
-    assert await async_func("not sync") == "cnys ton"
+    assert await func("xsync") == "cnysx"
+    assert await async_func("xsync") == "cnysx"
 
 
 def test_sync_method():
     t = MockObject()
-    assert t.meth("xsync") == "cnysx"
+    assert t.meth("xsync") == "xsync"
+    assert MockObject().meth("xsync") == "xsync"
 
 
 async def test_async_method():
     t = MockObject()
     assert await t.meth("xsync") == "cnysx"
     assert await t.async_meth("xsync") == "cnysx"
+    assert await MockObject().meth("xsync") == "cnysx"
+    assert await MockObject().async_meth("xsync") == "cnysx"
 
 
 def test_sync_classmethod():
@@ -106,8 +119,22 @@ async def test_async_classmethod():
     assert not t2.sync
 
 
+def test_sync_static_method():
+    t = MockObject()
+    assert t.static_meth("xsync") == "xsync"
+    assert MockObject.static_meth("xsync") == "xsync"
+
+
+async def test_async_static_method():
+    t = MockObject()
+    assert await t.static_meth("xsync") == "cnysx"
+    assert await t.async_static_meth("xsync") == "cnysx"
+    assert await MockObject.static_meth("xsync") == "cnysx"
+    assert await MockObject.async_static_meth("xsync") == "cnysx"
+
+
 async def test_no_async_implementation():
-    assert no_async_func("xsync") == "cnysx"
+    assert no_async_func("xsync") == "xsync"
 
     with pytest.raises(errors.NoAsyncImplementation) as exc:
         await no_async_func("xsync")
