@@ -1,5 +1,16 @@
 # Xsync
 
+[![PyPi version](https://img.shields.io/pypi/v/Xsync.svg)](https://pypi.python.org/pypi/Xsync/)
+[![PyPI - Status](https://img.shields.io/pypi/status/Xsync)](https://pypi.python.org/pypi/Xsync/)
+[![Downloads](https://pepy.tech/badge/Xsync)](https://pepy.tech/project/Xsync)
+[![GitHub last commit](https://img.shields.io/github/last-commit/parafoxia/Xsync)](https://github.com/parafoxia/Xsync)
+[![License](https://img.shields.io/github/license/parafoxia/Xsync.svg)](https://github.com/parafoxia/Xsync/blob/main/LICENSE)
+
+[![CI](https://github.com/parafoxia/Xsync/actions/workflows/ci.yml/badge.svg)](https://github.com/parafoxia/Xsync/actions/workflows/ci.yml)
+[![Maintainability](https://api.codeclimate.com/v1/badges/8819bdebb2d4aa8dfcb7/maintainability)](https://codeclimate.com/github/parafoxia/Xsync/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/8819bdebb2d4aa8dfcb7/test_coverage)](https://codeclimate.com/github/parafoxia/Xsync/test_coverage)
+<!-- [![Read the Docs](https://img.shields.io/readthedocs/Xsync)](https://Xsync.readthedocs.io/en/latest/index.html) -->
+
 A set of tools to create hybrid sync/async interfaces.
 
 CPython versions 3.7 through 3.11-dev and PyPy versions 3.7 through 3.9 are officially supported.
@@ -140,8 +151,8 @@ class MyClass:
 
 Contributions are very much welcome! To get started:
 
-* Familiarise yourself with the [code of conduct](https://github.com/parafoxia/analytix/blob/main/CODE_OF_CONDUCT.md)
-* Have a look at the [contributing guide](https://github.com/parafoxia/analytix/blob/main/CONTRIBUTING.md)
+* Familiarise yourself with the [code of conduct](https://github.com/parafoxia/Xsync/blob/main/CODE_OF_CONDUCT.md)
+* Have a look at the [contributing guide](https://github.com/parafoxia/Xsync/blob/main/CONTRIBUTING.md)
 
 ## License
 
