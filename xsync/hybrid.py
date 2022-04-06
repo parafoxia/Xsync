@@ -26,18 +26,59 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-__all__ = ("maybe_async", "as_hybrid", "set_async_impl")
+from __future__ import annotations
 
-__productname__ = "xsync"
-__version__ = "0.1.1"
-__description__ = "A set of tools to create hybrid sync/async interfaces."
-__url__ = "https://github.com/parafoxia/Xsync"
-__author__ = "Ethan Henderson"
-__author_email__ = "ethan.henderson.1998@gmail.com"
-__license__ = "BSD 3-Clause 'New' or 'Revised' License"
-__bugtracker__ = "https://github.com/parafoxia/Xsync/issues"
-__ci__ = "https://github.com/parafoxia/Xsync/actions"
-__changelog__ = "https://github.com/parafoxia/Xsync/releases"
+import inspect
+import logging
+import typing as t
+from functools import wraps
 
-from .deco import maybe_async
-from .hybrid import as_hybrid, set_async_impl
+from xsync import errors
+
+if t.TYPE_CHECKING:
+    FuncT = t.Callable[..., t.Any]
+    DecoT = t.Callable[[FuncT], FuncT]
+    AsyncWrapT = t.Callable[..., t.Awaitable[t.Any]]
+    AsyncDecoT = t.Callable[[FuncT], AsyncWrapT]
+
+    MappingT = dict[str, t.Callable[..., t.Any] | None]
+
+log = logging.getLogger(__name__)
+mapping: MappingT = {}
+
+
+def as_hybrid() -> DecoT:
+    def decorator(func: FuncT) -> FuncT:
+        mapping[func.__qualname__] = None
+
+        @wraps(func)
+        def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
+            ctx = inspect.stack()[1].code_context
+
+            if not ctx or "await" not in ctx[0]:
+                return func(*args, **kwargs)
+
+            coro = mapping[func.__qualname__]
+            if not coro:
+                raise errors.NoAsyncImplementation(func)
+            return coro(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def set_async_impl(func: FuncT) -> DecoT:
+    def decorator(coro: FuncT) -> FuncT:
+        if func.__qualname__ not in mapping:
+            raise errors.NotHybridCallable(func)
+
+        mapping[func.__qualname__] = coro
+
+        @wraps(coro)
+        def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
+            return coro(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

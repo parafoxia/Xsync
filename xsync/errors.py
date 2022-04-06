@@ -26,18 +26,30 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-__all__ = ("maybe_async", "as_hybrid", "set_async_impl")
+import typing as t
 
-__productname__ = "xsync"
-__version__ = "0.1.1"
-__description__ = "A set of tools to create hybrid sync/async interfaces."
-__url__ = "https://github.com/parafoxia/Xsync"
-__author__ = "Ethan Henderson"
-__author_email__ = "ethan.henderson.1998@gmail.com"
-__license__ = "BSD 3-Clause 'New' or 'Revised' License"
-__bugtracker__ = "https://github.com/parafoxia/Xsync/issues"
-__ci__ = "https://github.com/parafoxia/Xsync/actions"
-__changelog__ = "https://github.com/parafoxia/Xsync/releases"
 
-from .deco import maybe_async
-from .hybrid import as_hybrid, set_async_impl
+class XsyncError(Exception):
+    """The base exception class for Xsync."""
+
+
+class NoAsyncImplementation(XsyncError):
+    """Exception thrown when a callable wrapped in the `@as_hybrid`
+    decorator does not have a defined async implementation.
+    """
+
+    def __init__(self, func: t.Callable[..., t.Any]) -> None:
+        super().__init__(
+            f"{func.__qualname__!r} does not have a defined async implementation"
+        )
+
+
+class NotHybridCallable(XsyncError):
+    """Exception thrown when an attempt to map an async implementation
+    to a non-hybrid callable is made.
+    """
+
+    def __init__(self, func: t.Callable[..., t.Any]) -> None:
+        super().__init__(
+            f"{func.__qualname__!r} has not been registered as a hybrid callable"
+        )
