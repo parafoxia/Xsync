@@ -38,9 +38,6 @@ from xsync import errors
 if t.TYPE_CHECKING:
     FuncT = t.Callable[..., t.Any]
     DecoT = t.Callable[[FuncT], FuncT]
-    AsyncWrapT = t.Callable[..., t.Awaitable[t.Any]]
-    AsyncDecoT = t.Callable[[FuncT], AsyncWrapT]
-
     MappingT = dict[str, t.Callable[..., t.Any] | None]
 
 log = logging.getLogger(__name__)
