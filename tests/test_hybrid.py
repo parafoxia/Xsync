@@ -166,6 +166,7 @@ def test_async_impl_of_non_hybrid():
 
 def test_no_qualname():
     with mock.patch.object(sys, "version_info") as mock_sys:
+
         def __ge__(self, other):
             return False
 
