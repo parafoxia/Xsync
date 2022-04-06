@@ -30,11 +30,11 @@ from __future__ import annotations
 
 import inspect
 import logging
-import sys
 import typing as t
 from functools import wraps
 
 from xsync import errors
+from xsync.utils import get_fname
 
 if t.TYPE_CHECKING:
     from xsync.types import DecoT, FuncT, MappingT
@@ -43,18 +43,9 @@ log = logging.getLogger(__name__)
 mapping: MappingT = {}
 
 
-def _get_fname(func: FuncT) -> str:
-    if sys.version_info >= (3, 10):
-        return func.__qualname__
-
-    # Class methods and static methods did not have a __qualname__ attr
-    # before Python 3.10.
-    return getattr(func, "__qualname__", func.__name__)
-
-
 def as_hybrid() -> DecoT:
     def decorator(func: FuncT) -> FuncT:
-        fname = _get_fname(func)
+        fname = get_fname(func)
         mapping[fname] = None
 
         @wraps(func)
@@ -76,10 +67,10 @@ def as_hybrid() -> DecoT:
 
 def set_async_impl(func: FuncT) -> DecoT:
     def decorator(coro: FuncT) -> FuncT:
-        fname = _get_fname(func)
+        fname = get_fname(func, coro)
 
         if fname not in mapping:
-            raise errors.NotHybridCallable(func)
+            raise errors.NotHybridCallable(func, coro)
 
         mapping[fname] = coro
 

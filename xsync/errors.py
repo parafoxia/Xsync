@@ -26,7 +26,11 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import annotations
+
 import typing as t
+
+from xsync.utils import get_fname
 
 
 class XsyncError(Exception):
@@ -40,7 +44,7 @@ class NoAsyncImplementation(XsyncError):
 
     def __init__(self, func: t.Callable[..., t.Any]) -> None:
         super().__init__(
-            f"{func.__qualname__!r} does not have a defined async implementation"
+            f"{get_fname(func)!r} does not have a defined async implementation"
         )
 
 
@@ -49,7 +53,9 @@ class NotHybridCallable(XsyncError):
     to a non-hybrid callable is made.
     """
 
-    def __init__(self, func: t.Callable[..., t.Any]) -> None:
+    def __init__(
+        self, func: t.Callable[..., t.Any], coro: t.Callable[..., t.Any] | None = None
+    ) -> None:
         super().__init__(
-            f"{func.__qualname__!r} has not been registered as a hybrid callable"
+            f"{get_fname(func, coro)!r} has not been registered as a hybrid callable"
         )

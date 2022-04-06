@@ -28,14 +28,26 @@
 
 from __future__ import annotations
 
+import sys
 import typing as t
 import warnings
 from functools import wraps
+from types import FunctionType
 
 if t.TYPE_CHECKING:
     from xsync.types import DecoT, FuncT
 
 warnings.simplefilter("once", DeprecationWarning)
+
+
+def get_fname(func: FuncT, coro: FuncT | None = None) -> str:
+    if sys.version_info >= (3, 10) or isinstance(func, FunctionType):
+        return func.__qualname__
+
+    # Class methods and static methods did not have a __qualname__ attr
+    # before Python 3.10, but we can steal it from the coro function.
+    base = ".".join(coro.__qualname__.split(".")[:-1])
+    return f"{base}.{func.__func__.__name__}"
 
 
 def deprecated(removal_version: str = "", replaced_with: str = "") -> DecoT:
