@@ -37,9 +37,7 @@ from functools import wraps
 from xsync import errors
 
 if t.TYPE_CHECKING:
-    FuncT = t.Callable[..., t.Any]
-    DecoT = t.Callable[[FuncT], FuncT]
-    MappingT = dict[str, t.Callable[..., t.Any] | None]
+    from xsync.types import DecoT, FuncT, MappingT
 
 log = logging.getLogger(__name__)
 mapping: MappingT = {}

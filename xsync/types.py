@@ -28,41 +28,9 @@
 
 from __future__ import annotations
 
-import inspect
-import logging
 import typing as t
-from functools import wraps
 
 if t.TYPE_CHECKING:
-    from xsync.types import DecoT, FuncT
-
-log = logging.getLogger(__name__)
-
-
-def maybe_async() -> DecoT:
-    def decorator(func: FuncT) -> FuncT:
-        @wraps(func)
-        def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
-            ctx = inspect.stack()[1].code_context
-
-            if not ctx or "await" not in ctx[0]:
-                log.info(f"Selected {func.__qualname__} to run (sync)")
-                return func(*args, **kwargs)
-
-            if args:
-                # Account for classmethods.
-                n = args[0].__class__.__name__
-                clsname = n if n != "type" else args[0].__name__
-
-                if func.__qualname__.split(".")[0] == clsname:
-                    meth = getattr(args[0], f"_async_{func.__name__}")
-                    log.info(f"Selected {meth.__qualname__} to run (async meth)")
-                    return meth(*args[1:], **kwargs)
-
-            meth = func.__globals__[f"_async_{func.__name__}"]
-            log.info(f"Selected {meth.__qualname__} to run (async func)")
-            return meth(*args, **kwargs)
-
-        return wrapper
-
-    return decorator
+    FuncT = t.Callable[..., t.Any]
+    DecoT = t.Callable[[FuncT], FuncT]
+    MappingT = dict[str, t.Callable[..., t.Any] | None]
