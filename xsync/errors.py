@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import typing as t
 
-from xsync.utils import get_fname
+from xsync.utils import get_qualname
 
 
 class XsyncError(Exception):
@@ -44,7 +44,7 @@ class NoAsyncImplementation(XsyncError):
 
     def __init__(self, func: t.Callable[..., t.Any]) -> None:
         super().__init__(
-            f"{get_fname(func)!r} does not have a defined async implementation"
+            f"{get_qualname(func)!r} does not have a defined async implementation"
         )
 
 
@@ -57,5 +57,5 @@ class NotHybridCallable(XsyncError):
         self, func: t.Callable[..., t.Any], coro: t.Callable[..., t.Any] | None = None
     ) -> None:
         super().__init__(
-            f"{get_fname(func, coro)!r} has not been registered as a hybrid callable"
+            f"{get_qualname(func, coro)!r} has not been registered as a hybrid callable"
         )

@@ -40,7 +40,7 @@ if t.TYPE_CHECKING:
 warnings.simplefilter("once", DeprecationWarning)
 
 
-def get_fname(func: FuncT, coro: FuncT | None = None) -> str:
+def get_qualname(func: FuncT, coro: FuncT | None = None) -> str:
     if sys.version_info >= (3, 10) or isinstance(func, FunctionType):
         return func.__qualname__
 
