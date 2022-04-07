@@ -47,17 +47,20 @@ def as_hybrid() -> DecoT:
     def decorator(func: FuncT) -> FuncT:
         fname = get_fname(func)
         mapping[fname] = None
+        log.info(f"Registered {fname!r} as hybrid callable")
 
         @wraps(func)
         def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
             ctx = inspect.stack()[1].code_context
 
             if not ctx or "await" not in ctx[0]:
+                log.debug(f"Selected {fname!r} to run (sync)")
                 return func(*args, **kwargs)
 
             coro = mapping[fname]
             if not coro:
                 raise errors.NoAsyncImplementation(func)
+            log.debug(f"Selected {coro.__qualname__!r} to run (async)")
             return coro(*args, **kwargs)
 
         return wrapper
@@ -73,6 +76,9 @@ def set_async_impl(func: FuncT) -> DecoT:
             raise errors.NotHybridCallable(func, coro)
 
         mapping[fname] = coro
+        log.info(
+            f"Registered {coro.__qualname__!r} as async implementation of {fname!r}"
+        )
 
         @wraps(coro)
         def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
