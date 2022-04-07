@@ -29,7 +29,7 @@
 __all__ = ("maybe_async", "as_hybrid", "set_async_impl")
 
 __productname__ = "xsync"
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __description__ = "A set of tools to create hybrid sync/async interfaces."
 __url__ = "https://github.com/parafoxia/Xsync"
 __author__ = "Ethan Henderson"
