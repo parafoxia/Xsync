@@ -39,28 +39,28 @@ from xsync.utils import get_fname
 if t.TYPE_CHECKING:
     from xsync.types import DecoT, FuncT, MappingT
 
-log = logging.getLogger(__name__)
-mapping: MappingT = {}
+_log = logging.getLogger(__name__)
+_mapping: MappingT = {}
 
 
 def as_hybrid() -> DecoT:
     def decorator(func: FuncT) -> FuncT:
         fname = get_fname(func)
-        mapping[fname] = None
-        log.info(f"Registered {fname!r} as hybrid callable")
+        _mapping[fname] = None
+        _log.info(f"Registered {fname!r} as hybrid callable")
 
         @wraps(func)
         def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
             ctx = inspect.stack()[1].code_context
 
             if not ctx or "await" not in ctx[0]:
-                log.debug(f"Selected {fname!r} to run (sync)")
+                _log.debug(f"Selected {fname!r} to run (sync)")
                 return func(*args, **kwargs)
 
-            coro = mapping[fname]
+            coro = _mapping[fname]
             if not coro:
                 raise errors.NoAsyncImplementation(func)
-            log.debug(f"Selected {coro.__qualname__!r} to run (async)")
+            _log.debug(f"Selected {coro.__qualname__!r} to run (async)")
             return coro(*args, **kwargs)
 
         return wrapper
@@ -72,11 +72,11 @@ def set_async_impl(func: FuncT) -> DecoT:
     def decorator(coro: FuncT) -> FuncT:
         fname = get_fname(func, coro)
 
-        if fname not in mapping:
+        if fname not in _mapping:
             raise errors.NotHybridCallable(func, coro)
 
-        mapping[fname] = coro
-        log.info(
+        _mapping[fname] = coro
+        _log.info(
             f"Registered {coro.__qualname__!r} as async implementation of {fname!r}"
         )
 

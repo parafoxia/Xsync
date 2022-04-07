@@ -38,7 +38,7 @@ from xsync.utils import deprecated
 if t.TYPE_CHECKING:
     from xsync.types import DecoT, FuncT
 
-log = logging.getLogger(__name__)
+_log = logging.getLogger(__name__)
 
 
 @deprecated("0.4", "as_hybrid")
@@ -49,7 +49,7 @@ def maybe_async() -> DecoT:
             ctx = inspect.stack()[1].code_context
 
             if not ctx or "await" not in ctx[0]:
-                log.info(f"Selected {func.__qualname__} to run (sync)")
+                _log.info(f"Selected {func.__qualname__} to run (sync)")
                 return func(*args, **kwargs)
 
             if args:
@@ -59,11 +59,11 @@ def maybe_async() -> DecoT:
 
                 if func.__qualname__.split(".")[0] == clsname:
                     meth = getattr(args[0], f"_async_{func.__name__}")
-                    log.info(f"Selected {meth.__qualname__} to run (async meth)")
+                    _log.info(f"Selected {meth.__qualname__} to run (async meth)")
                     return meth(*args[1:], **kwargs)
 
             meth = func.__globals__[f"_async_{func.__name__}"]
-            log.info(f"Selected {meth.__qualname__} to run (async func)")
+            _log.info(f"Selected {meth.__qualname__} to run (async func)")
             return meth(*args, **kwargs)
 
         return wrapper
