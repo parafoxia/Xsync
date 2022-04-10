@@ -55,6 +55,14 @@ class AsyncInitMixin:
             cls._kwargs = kwargs
 
         setattr(cls, "__init__", __init__)
+
+        if not hasattr(cls, "__async_init__"):
+
+            async def __async_init__(self: AsyncInitMixin) -> None:
+                ...
+
+            setattr(cls, "__async_init__", __async_init__)
+
         return obj
 
     def __await__(self) -> t.Generator[t.Any, t.Any, AsyncInitMixin]:
