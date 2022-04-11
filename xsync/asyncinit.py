@@ -34,9 +34,14 @@ import typing as t
 
 _log = logging.getLogger(__name__)
 
+if t.TYPE_CHECKING:
+    AsyncT_co = t.TypeVar("AsyncT_co", bound="AsyncInitMixin", covariant=True)
+
 
 class AsyncInitMixin:
     __ainit__: t.Callable[..., t.Any]
+    _args: tuple[t.Any, ...]
+    _kwargs: dict[str, t.Any]
 
     def __new__(
         cls: type[AsyncInitMixin], *args: t.Any, **kwargs: t.Any
@@ -65,7 +70,7 @@ class AsyncInitMixin:
 
         return obj
 
-    def __await__(self) -> t.Generator[t.Any, t.Any, AsyncInitMixin]:
+    def __await__(self: AsyncT_co) -> t.Generator[t.Any, t.Any, AsyncT_co]:
         async def main() -> AsyncInitMixin:
             _log.debug(f"Initialising {self.__class__.__name__!r} asynchronously")
             await self.__ainit__(*self.__class__._args, *self.__class__._kwargs)
@@ -73,4 +78,4 @@ class AsyncInitMixin:
             del self.__class__._kwargs
             return self
 
-        return main().__await__()
+        return main().__await__()  # type: ignore
