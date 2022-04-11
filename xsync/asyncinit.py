@@ -36,7 +36,7 @@ _log = logging.getLogger(__name__)
 
 
 class AsyncInitMixin:
-    __async_init__: t.Callable[..., t.Any]
+    __ainit__: t.Callable[..., t.Any]
 
     def __new__(
         cls: type[AsyncInitMixin], *args: t.Any, **kwargs: t.Any
@@ -56,19 +56,19 @@ class AsyncInitMixin:
 
         setattr(cls, "__init__", __init__)
 
-        if not hasattr(cls, "__async_init__"):
+        if not hasattr(cls, "__ainit__"):
 
-            async def __async_init__(self: AsyncInitMixin) -> None:
+            async def __ainit__(self: AsyncInitMixin) -> None:
                 ...
 
-            setattr(cls, "__async_init__", __async_init__)
+            setattr(cls, "__ainit__", __ainit__)
 
         return obj
 
     def __await__(self) -> t.Generator[t.Any, t.Any, AsyncInitMixin]:
         async def main() -> AsyncInitMixin:
             _log.debug(f"Initialising {self.__class__.__name__!r} asynchronously")
-            await self.__async_init__(*self.__class__._args, *self.__class__._kwargs)
+            await self.__ainit__(*self.__class__._args, *self.__class__._kwargs)
             del self.__class__._args
             del self.__class__._kwargs
             return self

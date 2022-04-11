@@ -34,7 +34,7 @@ class MockObject(xsync.AsyncInitMixin):
         self.sync = True
         self.unique = value
 
-    async def __async_init__(self, value):
+    async def __ainit__(self, value):
         self.sync = False
         self.individual = value
 
@@ -61,4 +61,4 @@ async def test_async_init():
 
 async def test_async_init_none_available():
     n = await NoAsyncInit()
-    assert hasattr(n.__class__, "__async_init__")
+    assert hasattr(n.__class__, "__ainit__")
