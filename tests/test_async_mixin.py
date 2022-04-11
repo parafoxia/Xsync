@@ -26,19 +26,39 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-__all__ = ("AsyncInitMixin", "as_hybrid", "maybe_async", "set_async_impl")
+import xsync
 
-__productname__ = "xsync"
-__version__ = "0.2.1"
-__description__ = "A set of tools to create hybrid sync/async interfaces."
-__url__ = "https://github.com/parafoxia/Xsync"
-__author__ = "Ethan Henderson"
-__author_email__ = "ethan.henderson.1998@gmail.com"
-__license__ = "BSD 3-Clause 'New' or 'Revised' License"
-__bugtracker__ = "https://github.com/parafoxia/Xsync/issues"
-__ci__ = "https://github.com/parafoxia/Xsync/actions"
-__changelog__ = "https://github.com/parafoxia/Xsync/releases"
 
-from .asyncinit import AsyncInitMixin
-from .deco import maybe_async
-from .hybrid import as_hybrid, set_async_impl
+class MockObject(xsync.AsyncInitMixin):
+    def __init__(self, value):
+        self.sync = True
+        self.unique = value
+
+    async def __ainit__(self, value):
+        self.sync = False
+        self.individual = value
+
+
+class NoAsyncInit(xsync.AsyncInitMixin):
+    def __init__(self, value):
+        self.sync = True
+        self.unique = value
+
+
+def test_sync_init():
+    m = MockObject(69)
+    assert m.sync
+    assert m.unique == 69
+    assert not hasattr(m, "individual")
+
+
+async def test_async_init():
+    m = await MockObject(420)
+    assert not m.sync
+    assert m.individual == 420
+    assert not hasattr(m, "unique")
+
+
+async def test_async_init_none_available():
+    n = await NoAsyncInit()
+    assert hasattr(n.__class__, "__ainit__")
